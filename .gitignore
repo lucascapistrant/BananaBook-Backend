@@ -1,5 +1,2 @@
 .env
 node_modules
-
-# ignore this, I accidentally started on a diff feature without commiting ;) 
-middleware/auth.js
