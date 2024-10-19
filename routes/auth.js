@@ -1,8 +1,8 @@
 import express from "express";
 import bcrypt from 'bcrypt';
 import { ExpressValidator, body, validationResult } from "express-validator";
-// import { JsonWebTokenError } from "jsonwebtoken";
 import connectDB from "../config/db.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -31,41 +31,39 @@ router.post('/register', [
     }
 });
 
+router.post('/login', [
+    body('username').notEmpty().withMessage('Username is required'),
+    body('password').notEmpty().withMessage('Password is required')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+    }
+
+    const { username, password } = req.body;
+    try {
+        const db = await connectDB();
+        
+        const user = await db.collection('Users').findOne({ username });
+        const isMatch = await bcrypt.compare(password, user.passwordHash);
+
+        if (!user || !isMatch) {
+            return res.status(400).json({ message: 'Invalid username or password' });
+        }
+
+        if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRATION) {
+            return res.status(500).json({ message: 'Server configuration error' });
+        }
+
+        const token = jwt.sign(
+            { userId: user._id, username: user.username }, process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRATION }
+        );
+        res.status(200).json({ token });
+    } catch(err) {
+        console.error("Server Error:", err);
+        res.status(500).json({ message: 'Server Error' })
+    }
+});
+
 export default router;
-
-// import jwt from "jsonwebtoken";
-
-// router.post('/login', [
-//     body('username').notEmpty().withMessage('Username is required'),
-//     body('password').notEmpty().withMessage('Password is required')
-// ], async (req, res) => {
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//         return res.status(400).json({ errors: errors.array() });
-//     }
-
-//     const { username, password } = req.body;
-//     try {
-//         const db = await connectDB();
-//         const user = await db.collection('users').findOne({ username });
-//         if (!user) {
-//             return res.status(400).json({ message: 'Invalid username or password' });
-//         }
-
-//         const isMatch = await bcrypt.compare(password, user.passwordHash);
-//         if (!isMatch) {
-//             return res.status(400).json({ message: 'Invalid username or password' });
-//         }
-
-//         // Create a JWT token
-//         const token = jwt.sign(
-//             { userId: user._id, username: user.username },
-//             process.env.JWT_SECRET,
-//             { expiresIn: process.env.JWT_EXPIRATION }
-//         );
-
-//         res.json({ token });
-//     } catch (error) {
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// });
