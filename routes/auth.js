@@ -1,6 +1,6 @@
 import express from "express";
 import bcrypt from 'bcrypt';
-import { ExpressValidator, body, validationResult } from "express-validator";
+import { body, validationResult } from "express-validator";
 import connectDB from "../config/db.js";
 import jwt from "jsonwebtoken";
 
@@ -43,7 +43,7 @@ router.post('/login', [
     const { username, password } = req.body;
     try {
         const db = await connectDB();
-        
+
         const user = await db.collection('Users').findOne({ username });
         const isMatch = await bcrypt.compare(password, user.passwordHash);
 
