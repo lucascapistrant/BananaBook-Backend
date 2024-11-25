@@ -2,6 +2,7 @@ import express from "express";
 import { body, validationResult } from "express-validator";
 import connectDB from "../config/db.js";
 import verifyToken from '../middleware/auth.js'
+import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
@@ -64,8 +65,34 @@ router.get('/', [
     }
 });
 
-router.delete('/:id', (req, res) => {
-    res.json({ message: 'Post deleted API' });
+router.delete('/:id',[
+    verifyToken,
+], async (req, res) => {
+    const id = req.params.id;
+
+    if(!ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid Post Id'});
+    }
+
+    try {
+        const db = await connectDB();
+
+        const post = await db.collection('posts').findOne({ _id: new ObjectId(String(id)) });
+        if(!post) {
+            return res.status(404).json( { message: 'Post not found'} );
+        }
+
+        if(post.userId.toString() !== req.user.userId) {
+            return res.status(403).json({ message: 'You do not have permission to delete this post' });
+        }
+
+        await db.collection('posts').deleteOne({_id: new ObjectId(String(id))});
+        res.status(200).json({ message: 'Post deleted successfully'});
+    }
+    catch(err) {
+        console.error('Error deleting post:', err);
+        res.status(500).json({message: 'Server error'});
+    }
 });
 
 router.post('/:id/like', (req, res) => {

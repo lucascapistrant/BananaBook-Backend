@@ -38,5 +38,5 @@ connectDB().then(() => {
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Something Broke!');
+    res.status(500).send('Server Error - Unidentified');
 });
