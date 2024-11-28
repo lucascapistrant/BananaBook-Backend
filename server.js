@@ -3,7 +3,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
 import authRoutes from './routes/auth.js';
-import postRoutes from './routes/posts.js'
+import postRoutes from './routes/posts.js';
+import imageRoutes from './routes/images.js'
 import 'dotenv/config';
 import connectDB from "./config/db.js";
 
@@ -24,6 +25,7 @@ app.use(generalLimiter);
 connectDB().then(() => {
     app.use('/api/auth', authRoutes);
     app.use('/api/posts', postRoutes);
+    app.use('/api/images', imageRoutes);
     
     app.get('/', (req, res) => {
         res.send('Welcome to Bananabook!');
