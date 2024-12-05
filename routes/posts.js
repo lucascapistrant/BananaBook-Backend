@@ -10,21 +10,25 @@ router.post('/', [
     verifyToken,
     body('content')
         .isLength({min: 1}).withMessage("Content is required")
-        .isLength({max: 500}).withMessage("Content cannot exceed 500 characters")
+        .isLength({max: 500}).withMessage("Content cannot exceed 500 characters"),
+    body('title')
+        .isLength({min: 1}).withMessage('Title is required')
+        .isLength({max: 100}).withMessage('Title cannot exceed 100 characters')
 ], async (req, res) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array()});
     }
 
-    const { content } = req.body;
-    const userId = req.user.userId; // This should be set by the authenticateToken middleware
+    const { title, content } = req.body;
+    const userId = req.user.userId; // This should be set by the verifyToken middleware
     
     try {
         const db = await connectDB();
 
         const newPost = {
             userId: userId,
+            title: title,
             content: content,
             createdAt: new Date()
         }
