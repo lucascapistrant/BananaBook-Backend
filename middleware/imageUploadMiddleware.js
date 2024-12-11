@@ -6,8 +6,8 @@ const uploadPhoto = multer({
     limits: { fileSize: 2 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) cb(null, true);
-        else cb(new Error('Must upload an image.'), false);
-    }
+        else cb(new Error('File must be an image'), false);
+    },
 });
 
 const uploadToCloudinary = (buffer, options = {}) => {
@@ -20,7 +20,7 @@ const uploadToCloudinary = (buffer, options = {}) => {
 }
 
 const resizeAndUploadPhoto = async (req, res, next) => {
-    if(!req.files || req.files.length === 0) return next();
+    if(!req.files || req.files.length === 0) return next(new Error('You must upload an image'));
 
     try {
         // adjust the mapping to pass the file buffer and options to uploadToCloudinary
