@@ -40,19 +40,17 @@ router.post('/', [
     }
 });
 
-router.get('/', [
+router.get('/fetchPosts', [
     verifyToken,
 ], async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const db = await connectDB();
-    const limit = parseInt(req.body.limit) || 10;
-    const cursor = req.body.cursor;
-
     try {
+        const db = await connectDB();
+        let limit = parseInt(req.query.limit) || 10;
+        limit = Math.min(Math.max(parseInt(limit) || 10, 1), 100) // sets max to 100 and min to 1, if limit unspecified then 10 
+        const cursor = req.query.cursor && !isNaN(Date.parse(req.query.cursor))
+            ? new Date(req.query.cursor)
+            : null;
+
         const query = cursor ? { createdAt: { $lt: new Date(cursor) } } : {};
         const posts = await db.collection('posts')
             .find(query)
