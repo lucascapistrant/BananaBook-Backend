@@ -9,7 +9,16 @@ const router =  express.Router()
 
 router.put('/:id/profilePicture', uploadPhoto.array('images', 1), [
     verifyToken
-], resizeAndUploadPhoto, async (req, res) => {
+], async (req, res, next) => {
+    if(!req.files || req.files.length === 0) {
+        return res.status(400).json({message: "A profile picture must be uploaded"})
+    }
+
+    next();
+}, resizeAndUploadPhoto, async (req, res) => {
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ message: 'A profile picture must be uploaded' });
+    }
     try {
         const db = await connectDB();
         const id = req.params.id;
