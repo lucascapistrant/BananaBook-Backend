@@ -20,7 +20,6 @@ const uploadToCloudinary = (buffer, options = {}) => {
 }
 
 const resizeAndUploadPhoto = async (req, res, next) => {
-    if(!req.files || req.files.length === 0) return next(new Error('You must upload an image'));
 
     try {
         // adjust the mapping to pass the file buffer and options to uploadToCloudinary

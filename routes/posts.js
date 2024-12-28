@@ -3,10 +3,11 @@ import { body, validationResult } from "express-validator";
 import connectDB from "../config/db.js";
 import verifyToken from '../middleware/auth.js'
 import { ObjectId } from "mongodb";
+import { uploadPhoto, resizeAndUploadPhoto } from "../middleware/imageUploadMiddleware.js";
 
 const router = express.Router();
 
-router.post('/', [
+router.post('/', uploadPhoto.array('images', 5), [
     verifyToken,
     body('content')
         .isLength({min: 1}).withMessage("Content is required")
@@ -14,12 +15,13 @@ router.post('/', [
     body('title')
         .isLength({min: 1}).withMessage('Title is required')
         .isLength({max: 100}).withMessage('Title cannot exceed 100 characters')
-], async (req, res) => {
+], resizeAndUploadPhoto, async (req, res) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array()});
     }
 
+    const images = req.imageUrls || [];
     const { title, content } = req.body;
     const userId = req.user.userId; // This should be set by the verifyToken middleware
     
@@ -27,15 +29,21 @@ router.post('/', [
         const db = await connectDB();
 
         const newPost = {
-            userId: userId,
-            title: title,
-            content: content,
+            userId,
+            title,
+            content,
+            images,
             createdAt: new Date()
         }
 
         const result = await db.collection('posts').insertOne(newPost);
-        res.status(201).json({message: "New post created successfully", postId: result.insertedId});
-    } catch {
+        res.status(201).json({
+            message: "New post created successfully",
+            postId: result.insertedId,
+            post: newPost
+        });
+    } catch(err) {
+        console.log("Error creating new post:", err)
         res.status(500).json({message: "Server Error"});
     }
 });
