@@ -4,7 +4,6 @@ import rateLimit from "express-rate-limit";
 
 import authRoutes from './routes/auth.js';
 import postRoutes from './routes/posts.js';
-import imageRoutes from './routes/images.js';
 import userRoutes from './routes/users.js';
 import 'dotenv/config';
 import connectDB from "./config/db.js";
@@ -19,6 +18,7 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
 app.use(express.json());
 app.use(helmet());
 app.use(generalLimiter);
@@ -26,7 +26,6 @@ app.use(generalLimiter);
 connectDB().then(() => {
     app.use('/api/auth', authRoutes);
     app.use('/api/posts', postRoutes);
-    app.use('/api/images', imageRoutes);
     app.use('/api/users', userRoutes);
     
     app.get('/', (req, res) => {
