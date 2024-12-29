@@ -31,10 +31,9 @@ connectDB().then(() => {
     app.get('/', (req, res) => {
         res.send('Welcome to Bananabook!');
     })
-    
-    app.listen(PORT, () => {
-        console.log(`Server is running on port http://localhost:${PORT}`);
-    })
+
+    console.log(`Server is ready to handle requests.`);
+
 }).catch(err => {
     console.log('Failed to connect to MongoDB', err);
 });
@@ -43,3 +42,5 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Server Error - Unidentified');
 });
+
+module.exports = app;
