@@ -17,6 +17,7 @@ const generalLimiter = rateLimit({
 const app = express();
 
 const PORT = process.env.PORT || 3000;
+const STATUS = process.env.STATUS;
 
 app.set('trust proxy', 1);
 app.use(express.json());
@@ -27,11 +28,17 @@ connectDB().then(() => {
     app.use('/api/auth', authRoutes);
     app.use('/api/posts', postRoutes);
     app.use('/api/users', userRoutes);
+
+    if(STATUS == 'DEV') {
+        app.listen(PORT, () => {
+            console.log('Listening on port', PORT);
+        })
+    }
     
     app.get('/', (req, res) => {
         res.send('Welcome to Bananabook!');
     })
-
+    
     console.log(`Server is ready to handle requests.`);
 
 }).catch(err => {

@@ -48,7 +48,7 @@ router.post('/', uploadPhoto.array('images', 5), [
     }
 });
 
-router.get('/fetchPosts', [
+router.get('/fetch/new', [
     verifyToken,
 ], async (req, res) => {
     try {
@@ -74,6 +74,77 @@ router.get('/fetchPosts', [
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+router.get('/fetch/top', [
+    verifyToken
+], async (req, res) => {
+
+    try {
+        const db = await connectDB();
+
+        let limit = parseInt(req.query.limit) || 10;
+        limit = Math.min(Math.max(parseInt(limit) || 10, 1), 100) // sets max to 100 and min to 1, if limit unspecified then 10
+        const cursor = req.query.cursor ? parseInt(req.query.cursor, 10) : null;
+
+        const pipeline = [
+            { $project: {
+                title: 1,
+                content: 1,
+                createdAt: 1,
+                likes: { $ifNull: ["$likes", []] },
+                likesCount: { $size: { $ifNull: ["$likes", []] } }
+              }
+            },
+            cursor !== null
+                ? { $match: {likesCount: {$lt: cursor} } }
+                : null,
+            { $sort: { likesCount: -1 } },
+            { $limit: limit }
+        ].filter(Boolean)
+
+        const posts = await db.collection('posts').aggregate(pipeline).toArray();
+
+        const nextCursor = posts.length > 0 ? posts[posts.length - 1].likesCount : null;
+
+        res.status(200).json({ posts, nextCursor });
+    } catch(err) {
+        console.error("Error fetching posts:", err);
+        res.status(500).json({ message: 'Server error' });
+    }
+})
+
+router.get('/fetch/user/:userId', [
+    verifyToken
+], async (req, res) => {
+    try {
+        const db = await connectDB();
+        const userId = req.params.userId;
+        let limit = parseInt(req.query.limit) || 10;
+        limit = Math.min(Math.max(parseInt(limit) || 10, 1), 100) // sets max to 100 and min to 1, if limit unspecified then 10 
+        const cursor = req.query.cursor && !isNaN(Date.parse(req.query.cursor))
+            ? new Date(req.query.cursor)
+            : null;
+
+        const query = { userId }; // Filter by userId
+        if (cursor) {
+            query.createdAt = { $lt: cursor };
+        }
+        const posts = await db.collection('posts')
+            .find( query )
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .toArray()
+        
+        const nextCursor = posts.length > 0 ? posts[posts.length - 1].createdAt : null;
+
+        res.status(200).json({ posts, nextCursor })
+    } catch(err) {
+        console.error("Error fetching posts:", err);
+        res.status(500).json({ message: 'Server error' });
+    }
+})
+
+
 
 router.delete('/:id',[
     verifyToken,
