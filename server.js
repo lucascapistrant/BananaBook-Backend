@@ -43,4 +43,4 @@ app.use((err, req, res, next) => {
     res.status(500).send('Server Error - Unidentified');
 });
 
-module.exports = app;
+export default app
