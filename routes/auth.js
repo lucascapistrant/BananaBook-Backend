@@ -55,11 +55,18 @@ router.post('/login', [
             return res.status(500).json({ message: 'Server configuration error' });
         }
 
-        const token = jwt.sign(
+        const jwtToken = jwt.sign(
             { userId: user._id, username: user.username }, process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRATION }
         );
-        res.status(200).json({ token });
+        res.cookie("token", jwtToken, {
+            httpOnly: true, 
+            secure: true,
+            sameSite: "Strict",
+        })
+        .status(200)
+        .json({ message: "Login successful, JWT token stored in cookies" });
+
     } catch(err) {
         console.error("Server Error:", err);
         res.status(500).json({ message: 'Server Error' })

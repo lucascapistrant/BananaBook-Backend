@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
@@ -24,6 +25,7 @@ const allowedOrigins = process.env.ALLOWEDORIGINS.split(",");
 
 app.set('trust proxy', 1);
 app.use(express.json());
+app.use(cookieParser());
 app.use(helmet());
 app.use(generalLimiter);
 app.use(cors({

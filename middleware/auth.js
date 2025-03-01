@@ -1,13 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 function verifyToken(req, res, next) {
-    const authHeader = req.header('Authorization')
-    
-    if(!authHeader) {
-        return res.status(401).json({message: "Access denied, no token provided"})
-    }
-    
-    const token = authHeader.split(' ')[1];
+    const token = req.cookies.token;
 
     if(!token) {
         return res.status(401).json({ message: 'Access denied, malformed token' });
