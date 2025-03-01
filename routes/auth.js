@@ -61,7 +61,7 @@ router.post('/login', [
         );
         res.cookie("token", jwtToken, {
             httpOnly: true, 
-            secure: false,
+            secure: true,
             sameSite: "None",
         })
         .status(200)
