@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
@@ -19,10 +20,23 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const STATUS = process.env.STATUS;
 
+const allowedOrigins = process.env.ALLOWEDORIGINS.split(",");
+
 app.set('trust proxy', 1);
 app.use(express.json());
 app.use(helmet());
 app.use(generalLimiter);
+app.use(cors({
+    origin: (origin, cb) => {
+        if(!origin || allowedOrigins.includes(origin)) {
+            cb(null, true);
+        }
+        else {
+            cb(new Error("Not allowed by CORS"))
+        }
+    },
+    credentials: true,
+}))
 
 connectDB().then(() => {
     app.use('/api/auth', authRoutes);
