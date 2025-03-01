@@ -61,8 +61,8 @@ router.post('/login', [
         );
         res.cookie("token", jwtToken, {
             httpOnly: true, 
-            secure: true,
-            sameSite: "Strict",
+            secure: false,
+            sameSite: "None",
         })
         .status(200)
         .json({ message: "Login successful, JWT token stored in cookies" });
