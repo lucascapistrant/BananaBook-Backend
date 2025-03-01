@@ -60,9 +60,10 @@ router.post('/login', [
             { expiresIn: process.env.JWT_EXPIRATION }
         );
         res.cookie("token", jwtToken, {
-            httpOnly: true, 
+            httpOnly: true,
             secure: true,
             sameSite: "None",
+            partitioned: true
         })
         .status(200)
         .json({ message: "Login successful, JWT token stored in cookies" });
