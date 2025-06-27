@@ -187,7 +187,7 @@ router.post('/:id/like', [
         )
 
         if(result.modifiedCount === 0) {
-            return res.status(200).json({message: 'You have already liked this post'})
+            return res.status(409).json({message: 'You have already liked this post'})
         }
         
         res.status(200).json({message: 'Post liked successfully'});
